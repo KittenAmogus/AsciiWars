@@ -5,21 +5,19 @@
 #define ARDUINO 0
 #define DEBUG 0
 
-// Basic types
-#ifndef uint8_t
-#define uint8_t unsigned char
-#endif
+// For limits
+#define LIMIT_MAX_UNITS 32
+#define LIMIT_MAX_BUILDINGS 32
 
-#ifndef uint16_t
-#define uint16_t unsigned short
-#endif
+// For sizes
 
-#ifndef int8_t
-#define int8_t signed char
-#endif
-
-#ifndef int16_t
-#define int16_t signed short
+// Size (Cells)
+#if ARDUINO
+#define SIZE_X_VIEWPORT 8
+#define SIZE_Y_VIEWPORT 4
+#else
+#define SIZE_X_VIEWPORT 16
+#define SIZE_Y_VIEWPORT 8
 #endif
 
 // If u see it, send me in char '0xA0', i want to check if u seen my code
