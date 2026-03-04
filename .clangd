@@ -1,0 +1,5 @@
+CompileFlags:
+  Add:
+    "-Isrc"
+    "-std=c11"
+    "-Wall"
