@@ -1,0 +1,15 @@
+[
+  {
+    "file": "src/main.c",
+    "arguments": [
+      "gcc",
+      "-c",
+      "src/main.c",
+      "-o",
+      "build/main.c.o",
+      "-Isrc"
+    ],
+    "directory": "/home/kitten/Documents/AsciiWars",
+    "output": "build/main.c.o"
+  }
+]
