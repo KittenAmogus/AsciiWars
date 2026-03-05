@@ -2,25 +2,27 @@
 #define TYPES_H
 
 #include <stdint.h>
-
-typedef struct {
-  // Just position from (0, 0)
+typedef struct { // Just position from (0, 0)
   uint16_t x : 8;
   uint16_t y : 8;
+  // uint16_t revealed : 1;  // Use (x==0 && y==0)
 } __attribute__((packed)) Chunk;
+// 2 Byte
 
 typedef struct {
   // Offset from chunk X, Y
   uint16_t x : 4;
   uint16_t y : 4;
 
-  uint16_t direction : 2; // just 4 directions
-  uint16_t type : 2;      // soldat, drone, tank, <maybe i will add new type>
-  uint16_t owner : 1;     // isPC's
-  uint16_t hp : 3;        // 0 - 4
+  uint16_t type : 2;  // soldat, drone, tank, <maybe i will add new type>
+  uint16_t owner : 1; // isPC's
+  uint16_t hp : 5;    // 0 - 15
+  // uint16_t unused; <- Idk, why I did this lol, i just realised this is so
+  // stupid
 
   uint8_t chunkAddr;
 } __attribute__((packed)) Unit;
+// 3 Byte
 
 typedef struct {
   // Offset from chunk X, Y
@@ -33,6 +35,7 @@ typedef struct {
 
   uint8_t chunkAddr;
 } __attribute__((packed)) Building;
+// 3 Byte
 
 typedef struct {
   // Offset from chunk X, Y
@@ -44,6 +47,7 @@ typedef struct {
   uint16_t type : 1; // Gold/Uranium
   uint8_t chunkAddr;
 } __attribute__((packed)) Vein;
+// 3 Byte
 
 typedef struct {
   // 0 - 1023
@@ -55,20 +59,20 @@ typedef struct {
 
   uint32_t unused : 8;
 } __attribute__((packed)) Player;
+// 4 Byte
 
-typedef enum {
+/* typedef enum {
   DIR_UP = 0b00,
   DIR_DOWN = 0b01,
   DIR_LEFT = 0b10,
   DIR_RIGHT = 0b11
-} Directions;
+} Directions; */
 
 typedef enum {
   UNIT_SOLDIER = 0b00,
   UNIT_DRONE = 0b01,
   UNIT_TANK = 0b10,
   UNIT_LANDMINE = 0b11
-  // Will add it like static drone, not visible by enemy
 } UnitTypes;
 
 typedef enum {

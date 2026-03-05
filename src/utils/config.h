@@ -6,8 +6,12 @@
 #define DEBUG 0
 
 // For limits
+#define LIMIT_MAX_VEINS 16
 #define LIMIT_MAX_UNITS 32
 #define LIMIT_MAX_BUILDINGS 32
+
+#define LIMIT_MAX_NUKES 4
+#define LIMIT_MAX_CHUNKS 64
 
 // For sizes
 
@@ -19,6 +23,9 @@
 #define SIZE_X_VIEWPORT 16
 #define SIZE_Y_VIEWPORT 8
 #endif
+
+#define DISABLED_CHUNK_X 0xFF
+#define DISABLED_CHUNK_Y 0xFF
 
 // If u see it, send me in char '0xA0', i want to check if u seen my code
 
