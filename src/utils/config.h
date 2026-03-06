@@ -6,9 +6,7 @@
 #define DEBUG 0
 
 // For limits
-#define LIMIT_MAX_VEINS 16
-#define LIMIT_MAX_UNITS 32
-#define LIMIT_MAX_BUILDINGS 32
+#define LIMIT_MAX_ENTITIES 64
 
 #define LIMIT_MAX_NUKES 4
 #define LIMIT_MAX_CHUNKS 64

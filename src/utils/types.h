@@ -2,54 +2,62 @@
 #define TYPES_H
 
 #include <stdint.h>
-typedef struct { // Just position from (0, 0)
+
+typedef struct {
+  // Coordinates 2 byte
+  uint16_t x : 4;
+  uint16_t y : 4;
+  uint16_t chunkAddr : 8;
+
+  // Data 1 byte
+  uint8_t timer : 3; // Timer to explosion
+  uint8_t power : 3; // Different powers
+  uint8_t owner : 2; // For statistics
+} __attribute__((packed)) NukeTimer;
+
+typedef struct {
+  uint16_t type : 4;
+  uint16_t owner : 2;
+  uint16_t isBlinking : 1;
+  uint16_t isVeteran : 1;
+
+  uint16_t soldierCount : 2;
+  uint16_t tankCount : 2;
+  uint16_t droneCount : 2;
+  uint16_t hasLandMine : 1;
+  uint16_t unused : 1;
+} __attribute__((packed)) EntityInCell;
+// 1 Byte
+
+typedef struct {
+
   uint16_t x : 8;
   uint16_t y : 8;
-  // uint16_t revealed : 1;  // Use (x==0 && y==0)
+
 } __attribute__((packed)) Chunk;
 // 2 Byte
 
 typedef struct {
-  // Offset from chunk X, Y
-  uint16_t x : 4;
-  uint16_t y : 4;
 
-  uint16_t type : 2;  // soldat, drone, tank, <maybe i will add new type>
-  uint16_t owner : 1; // isPC's
-  uint16_t hp : 5;    // 0 - 15
-  // uint16_t unused; <- Idk, why I did this lol, i just realised this is so
-  // stupid
+  // Coordinates 2 byte
+  uint32_t x : 4;
+  uint32_t y : 4;
+  uint32_t chunkAddr : 8;
 
-  uint8_t chunkAddr;
-} __attribute__((packed)) Unit;
-// 3 Byte
+  // Data 2 byte
+  uint32_t type : 4;       // 0 - 15
+  uint32_t hp : 4;         // 0 - 15
+  uint32_t ap : 3;         // Bonus for LABs
+  uint32_t owner : 2;      // NULL, 3 Players
+  uint32_t isVisible : 1;  // Can enemy see it
+  uint32_t isVeteran : 1;  // Killed tank
+  uint32_t isBlinking : 1; // Targeted by NUKE or enemy inside
 
-typedef struct {
-  // Offset from chunk X, Y
-  uint16_t x : 4;
-  uint16_t y : 4;
-
-  uint16_t type : 3;  // 0 - 7
-  uint16_t hp : 4;    // 0-15
-  uint16_t owner : 1; // isPC's
-
-  uint8_t chunkAddr;
-} __attribute__((packed)) Building;
-// 3 Byte
+} __attribute__((packed)) Entity;
+// 4 Byte
 
 typedef struct {
-  // Offset from chunk X, Y
-  uint16_t x : 4;
-  uint16_t y : 4;
-  uint16_t resources : 5; // 0-63
-  uint16_t isRich : 1;
-  uint16_t isMined : 1;
-  uint16_t type : 1; // Gold/Uranium
-  uint8_t chunkAddr;
-} __attribute__((packed)) Vein;
-// 3 Byte
 
-typedef struct {
   // 0 - 1023
   uint32_t goldCount : 10;
   uint32_t uraniumCount : 10;
@@ -58,33 +66,39 @@ typedef struct {
   uint32_t bonusApCount : 3;
 
   uint32_t unused : 8;
+
 } __attribute__((packed)) Player;
 // 4 Byte
 
-/* typedef enum {
-  DIR_UP = 0b00,
-  DIR_DOWN = 0b01,
-  DIR_LEFT = 0b10,
-  DIR_RIGHT = 0b11
-} Directions; */
-
+// Maximum 15 types + NULL
 typedef enum {
-  UNIT_SOLDIER = 0b00,
-  UNIT_DRONE = 0b01,
-  UNIT_TANK = 0b10,
-  UNIT_LANDMINE = 0b11
-} UnitTypes;
 
-typedef enum {
-  BLD_NULL,
+  // NULL Type
+  ENTITY_NULL = 0,
 
+  // Units
+  UNIT_SOLDIER,
+  UNIT_DRONE,
+  UNIT_TANK,
+  UNIT_LANDMINE,
+
+  // Buildings
   BLD_BASE,
   BLD_FARM,
   BLD_FACTORY,
   BLD_MINER,
   BLD_BARRACKS,
   BLD_LAB,
-  BLD_SILO
-} BuildingTypes;
+  BLD_SILO,
+
+  // Resources
+  VEIN_GOLD,
+  VEIN_URANIUM,
+
+  // No recalculate mining resource every frane
+  MINER_GOLD,
+  MINER_URANIUM
+
+} EntityTypes;
 
 #endif // TYPES_H

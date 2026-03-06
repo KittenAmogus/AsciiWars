@@ -6,73 +6,75 @@
 
 #include <stdio.h>
 
+typedef struct {
+  uint8_t x: 4;  // 0-15
+  uint8_t y: 4;  // 0-15
+} __attribute__((packed)) ViewportCoords;
 
 extern GameData game;
 
+const char ENTITY_CHARS[16] = {
+  '!',  // ERROR if NULL drawed
 
-/*
-BuildingTypes getBType(uint16_t x, uint16_t y) {
-  for (uint8_t i=0; i<LIMIT_MAX_BUILDINGS; i++) {
-    Building bld = game.allBuildings[i];
+  // Units
+  'i', '^', 'T', '=',
 
-    if (bld.hp == 0 || bld.type == BLD_NULL)
-      continue;
+  // Buildings
+  'W', 'F', 'F', '_', 'B', 'L', 'I',
 
-    Chunk chunk = game.loadedChunks[bld.chunkAddr];
-
-    uint8_t worldX, worldY;
-    worldX = (chunk.x << 4) + bld.x;
-    worldY = (chunk.y << 4) + bld.y;
-
-    if (worldX == x && worldY == y)
-      return bld.type;
-  }
-  return BLD_NULL;
-}
-*/
-
-const char BLD_CHARS[8] = {
-  '.', 'W', 'f', 'A', '\0', 'R', 'L', 'I'
+  // Resources (Vein x2, Miner x2)
+  'G', 'U', 'G', 'U'
 };
 
-const char UNIT_CHARS[4] = {
-  'i', '^', 't', '='
+const uint8_t BG_OWNER_COLORS[4] = {
+  0, 104, 101, 102
 };
 
+const uint8_t FG_OWNER_COLORS[4] = {
+  0, 90, 90, 90
+};
 
 void updateViewPortCache() {
-  memset(&game.unitInCells, 0, sizeof (game.unitInCells));
+  // Reset viewport buffer
+  // TODO Add dirty flags and NOT clear cache
+  memset(&game.viewportCache, 0, sizeof(game.viewportCache));
 
-  for (uint8_t i=0; i<LIMIT_MAX_UNITS; i++) {
-    Unit u = game.allUnits[i];
+  for (uint8_t entityId = 0; entityId < LIMIT_MAX_ENTITIES; entityId++) {
+    Entity e = game.allEntities[entityId];
 
-    if (u.hp == 0)
+    if (e.type == ENTITY_NULL)
       continue;
 
-    Chunk uc = game.loadedChunks[u.chunkAddr];
-
-    uint16_t globalX, globalY;
-    globalX = (uc.x << 4) + u.x;
-    globalY = (uc.y << 4) + u.y;
-
-    // If is not in viewport
-    if ((globalX >= game.viewPortX + SIZE_X_VIEWPORT || globalX < game.viewPortX ) ||
-        (globalY >= game.viewPortY + SIZE_Y_VIEWPORT || globalY < game.viewPortY))
-      continue;
-
-    // Position in viewport
     uint8_t localX, localY;
-    localX = globalX - game.viewPortX;
-    localY = globalY - game.viewPortY;
+    uint16_t globalX, globalY;
 
-    UnitCount *ucnt = &game.unitInCells[localY][localX];
+    Chunk c = game.lazyChunks[e.chunkAddr];
 
-    // Increase values
-    ucnt->soldierCount += (u.type == UNIT_SOLDIER);
-    ucnt->hasLandMine = (u.type == UNIT_LANDMINE);
-    ucnt->droneCount += (u.type == UNIT_DRONE);
-    ucnt->tankCount += (u.type == UNIT_TANK);
-    ucnt->owner = u.owner;
+    globalX = (c.x << 4) + e.x;
+    globalY = (c.y << 4) + e.y;
+
+    // If not in viewport
+    if (globalX < game.viewportX ||
+        globalX >= game.viewportX + SIZE_X_VIEWPORT) continue;
+    if (globalY < game.viewportY ||
+        globalY >= game.viewportY + SIZE_Y_VIEWPORT) continue;
+
+    localX = globalX - game.viewportX;
+    localY = globalY - game.viewportY;
+
+    EntityInCell *data = &game.viewportCache[localY][localX];
+  
+    data->soldierCount += (e.type == UNIT_SOLDIER);
+    data->tankCount += (e.type == UNIT_TANK);
+    data->droneCount += (e.type == UNIT_DRONE);
+    data->hasLandMine = (e.type == UNIT_LANDMINE);
+    data->owner = e.owner;
+
+    data->isVeteran |= (e.isVeteran);
+    data->isBlinking |= e.isBlinking;
+
+    if (e.type >= BLD_BASE) data->type = e.type;
+
   }
 }
 
@@ -99,71 +101,72 @@ void drawGrid() {
 }
 
 
-void redrawCell(uint16_t x, uint16_t y) {
-  uint8_t localX, localY, drawX, drawY;
-  localX = (uint8_t)(x - game.viewPortX);
-  localY = (uint8_t)(y - game.viewPortY);
+void redrawCell(uint16_t globalX, uint16_t globalY) {
+  uint8_t x, y;
+  x = globalX - game.viewportX;
+  y = globalY - game.viewportY;
 
-  drawX = 1 + 1 + (localX << 2);
-  drawY = 1 + 1 + (localY);
-
-  UnitCount unitCount = game.unitInCells[localY][localX];
-  BuildingDrawData bld = game.bldInCells[localY][localX];
-
-  // Drawing
-  printf("\x1b[%d;%dH", drawY, drawX);
-
+  EntityInCell cache = game.viewportCache[y][x];
   char buff[4] = "   ";
 
-  // Units
-  if (unitCount.hasLandMine) {
-    buff[0] = ' ';
-    buff[2] = ' ';
-    buff[1] = UNIT_CHARS[UNIT_LANDMINE];
+  if (cache.type < BLD_BASE) {
 
-  }
-  else {
+    // Add units
+    uint8_t uoff=0;
 
-    uint8_t uoff = 0;
-
-    for (uint8_t i=uoff; i<unitCount.droneCount; i++) {
-      buff[i] = UNIT_CHARS[UNIT_DRONE];
-      uoff+= (uoff < 3);
-    }
-    for (uint8_t i=uoff; i<unitCount.tankCount; i++) {
-      buff[i] = UNIT_CHARS[UNIT_TANK];
-      uoff+= (uoff < 3);
-    }
-    for (uint8_t i=uoff; i<unitCount.soldierCount; i++) {
-      buff[i] = UNIT_CHARS[UNIT_SOLDIER];
-      uoff+= (uoff < 3);
+    while (uoff < 3) {
+      if (cache.tankCount > 0) {
+        buff[uoff++] = ENTITY_CHARS[UNIT_TANK];
+        cache.tankCount--;
+      } else if (cache.soldierCount > 0) {
+        buff[uoff++] = ENTITY_CHARS[UNIT_SOLDIER];
+        cache.soldierCount--;
+      } else if (cache.droneCount > 0) {
+        buff[uoff++] = ENTITY_CHARS[UNIT_DRONE];
+        cache.droneCount--;
+      } else break;
     }
 
-  }
+  } else {
 
-  // Building
-  if (bld.type != BLD_NULL) {
-    buff[1] = BLD_CHARS[bld.type];
-    if (bld.type != BLD_MINER) {
+    if (cache.type < VEIN_GOLD) {
       buff[0] = '[';
       buff[2] = ']';
-    }
-    else {
+    } else if (cache.type < MINER_URANIUM) {
       buff[0] = '(';
-      buff[1] = 'G';  // TODO Change to vein type
       buff[2] = ')';
+    }
+
+    buff[1] = ENTITY_CHARS[cache.type];
+  }
+
+  printf("\x1b[%d;%dH", 1 + 1 + (y), 1 + 1 + (x << 2));
+
+  printf("\x1b[%d;%dm",
+      BG_OWNER_COLORS[cache.owner],
+      FG_OWNER_COLORS[cache.owner]
+  );;
+
+  if (cache.isBlinking)
+    printf("\x1b[5m");
+  else if (cache.isVeteran)
+    printf("\x1b[93m");
+
+  if (globalX == game.cursorX && globalY == game.cursorY) {
+    printf("\x1b[7m");
+
+    if (game.selUnit != 0xFF) {
+      Entity se = game.allEntities[game.selUnit];
+      buff[1] = ENTITY_CHARS[se.type];
     }
   }
 
-  if (x == game.cursorX && y == game.cursorY)
-    printf("\x1b[7m");
-
   printf("%s", buff);
-
   printf("\x1b[0m");
 }
 
 void redrawViewport(uint16_t cx, uint16_t cy) {
+  // TODO Add dirty flags
   updateViewPortCache();
 
   for (uint16_t y=cy; y<cy + SIZE_Y_VIEWPORT; y++) {
