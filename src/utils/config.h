@@ -17,14 +17,15 @@
 #if ARDUINO
 #define SIZE_X_VIEWPORT 8
 #define SIZE_Y_VIEWPORT 4
+#define XY_VIEWPORT 32
 #else
 #define SIZE_X_VIEWPORT 16
 #define SIZE_Y_VIEWPORT 8
+
+#define XY_VIEWPORT 128
 #endif
 
 #define DISABLED_CHUNK_X 0xFF
 #define DISABLED_CHUNK_Y 0xFF
-
-// If u see it, send me in char '0xA0', i want to check if u seen my code
 
 #endif // CONFIG_H

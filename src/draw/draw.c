@@ -1,6 +1,7 @@
 #include "draw.h"
 #include "utils/memory.h"
 #include "utils/config.h"
+#include "utils/utils.h"
 
 #include <string.h>
 
@@ -27,7 +28,7 @@ const char ENTITY_CHARS[16] = {
 };
 
 const uint8_t BG_OWNER_COLORS[4] = {
-  0, 104, 101, 102
+  0, 101, 104, 102
 };
 
 const uint8_t FG_OWNER_COLORS[4] = {
@@ -37,32 +38,34 @@ const uint8_t FG_OWNER_COLORS[4] = {
 void updateViewPortCache() {
   // Reset viewport buffer
   // TODO Add dirty flags and NOT clear cache
+
   memset(&game.viewportCache, 0, sizeof(game.viewportCache));
 
-  for (uint8_t entityId = 0; entityId < LIMIT_MAX_ENTITIES; entityId++) {
-    Entity e = game.allEntities[entityId];
+  Entity e;
+  EntityInCell *data;
+
+  uint8_t localX, localY;
+  uint16_t globalX, globalY;
+
+  for (uint8_t enitityId=0; enitityId<LIMIT_MAX_ENTITIES; enitityId++) {
+    e = game.allEntities[enitityId];
 
     if (e.type == ENTITY_NULL)
       continue;
 
-    uint8_t localX, localY;
-    uint16_t globalX, globalY;
-
     Chunk c = game.lazyChunks[e.chunkAddr];
-
     globalX = (c.x << 4) + e.x;
     globalY = (c.y << 4) + e.y;
 
-    // If not in viewport
     if (globalX < game.viewportX ||
         globalX >= game.viewportX + SIZE_X_VIEWPORT) continue;
     if (globalY < game.viewportY ||
         globalY >= game.viewportY + SIZE_Y_VIEWPORT) continue;
 
-    localX = globalX - game.viewportX;
-    localY = globalY - game.viewportY;
+    localX = (globalX - game.viewportX);
+    localY = (globalY - game.viewportY);
 
-    EntityInCell *data = &game.viewportCache[localY][localX];
+    data = &game.viewportCache[localY][localX];
   
     data->soldierCount += (e.type == UNIT_SOLDIER);
     data->tankCount += (e.type == UNIT_TANK);
@@ -74,7 +77,6 @@ void updateViewPortCache() {
     data->isBlinking |= e.isBlinking;
 
     if (e.type >= BLD_BASE) data->type = e.type;
-
   }
 }
 
