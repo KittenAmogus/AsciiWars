@@ -4,6 +4,14 @@
 #include <stdint.h>
 
 typedef struct {
+  uint8_t soldiers : 2;
+  uint8_t drones : 2;
+  uint8_t tanks : 2;
+  uint8_t landmine : 1;
+  uint8_t owner : 1;
+} __attribute__((packed)) UnitCount;
+
+typedef struct {
   // Coordinates 2 byte
   uint16_t x : 4;
   uint16_t y : 4;
@@ -65,7 +73,8 @@ typedef struct {
   uint32_t wasFarmPlaced : 1;
   uint32_t bonusApCount : 3;
 
-  uint32_t unused : 8;
+  uint32_t id : 2;
+  uint32_t unused : 6;
 
 } __attribute__((packed)) Player;
 // 4 Byte
@@ -100,5 +109,14 @@ typedef enum {
   MINER_URANIUM
 
 } EntityTypes;
+
+typedef struct {
+  uint8_t gold;
+  uint8_t uranium;
+} ResourceCount;
+
+extern const ResourceCount ENTITY_COSTS[16];
+extern const uint8_t UNIT_DAMAGE[5];
+extern const uint8_t ENTITY_HPS[16];
 
 #endif // TYPES_H

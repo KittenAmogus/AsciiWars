@@ -27,6 +27,8 @@ typedef struct {
   uint16_t cursorX, cursorY;
 
   uint8_t selUnit;
+
+  uint8_t needRedraw;
 } __attribute__((packed)) GameData;
 
 // Game, only for server

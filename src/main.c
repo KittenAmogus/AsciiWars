@@ -3,116 +3,39 @@
 #include "utils/types.h"
 #include "utils/utils.h"
 
-#include "input/pc_input.h"
+// #include "input/pc_input.h"
+#include "input/input.h"
 #include "draw/draw.h"
-#include <stdio.h>
 
+#if ARDUINO
+#include "input/arduino_input.h"
+#else
+#include "input/pc_input.h"
+#endif
+
+#include <stdio.h>
 #include <string.h>
 
-#define GET_INPUT(x) read(STDIN_FILENO, x, 1)
-
+ServerData serv;
 GameData game;
 
-uint8_t needRedraw;
 
+void nextTurn(void) {
+  serv.gameTurn++;
 
-void selectUnit() { uint8_t localX = game.cursorX & 0x0F;
-  uint8_t localY = game.cursorY & 0x0F;
+  // Next player's turn
+  uint8_t pc = ((game.playerTurn + 1) & 3);
+  pc += pc == 0;
 
-  uint8_t chunkX = game.cursorX >> 4;
-  uint8_t chunkY = game.cursorY >> 4;
-
-  for (uint8_t i=0; i<LIMIT_MAX_ENTITIES; i++) {
-    Entity *e = &game.allEntities[i];
-    
-    if (e->type == ENTITY_NULL)
-      continue;
-
-    if (e->x == localX && e->y == localY) {
-      Chunk c = game.lazyChunks[e->chunkAddr];
-      if (c.x != chunkX || c.y != chunkY) {
-        continue;
-      }
-    } else {
-      continue;
-    }
- 
-    e->isBlinking = 1;
-    game.selUnit = i;
-    break;
+  for (uint8_t p=0; p<3; p++) {
+    game.player = serv.allPlayers[p];
+    processIncome();
+    serv.allPlayers[p] = game.player;
   }
 
-  needRedraw = 1;
-}
-
-void unselectUnit() {
-  uint8_t localX, localY;
-  localX = game.cursorX & 0x0F;
-  localY = game.cursorY & 0x0F;
-
-  uint8_t chunk = findAvailableChunk_INDEX(game.cursorX >> 4, game.cursorY >> 4);
-  if (chunk == 0xFF)
-    return;
-
-  Entity *e = &game.allEntities[game.selUnit];
-  e->x = localX;
-  e->y = localY;
-  e->chunkAddr = chunk;
-  e->isBlinking = 0;
-
-  game.selUnit = -1;
-  needRedraw = 1;
-}
-
-
-void moveCursor(int dx, int dy) {
-  if (dx > 0 && game.cursorX < (LIMIT_MAX_CHUNKS << 4) - 1) game.cursorX++;
-  if (dx < 0 && game.cursorX > 0) game.cursorX--;
-  if (dy > 0 && game.cursorY < (LIMIT_MAX_CHUNKS << 4) - 1) game.cursorY++;
-  if (dy < 0 && game.cursorY > 0) game.cursorY--;
-
-  if (game.cursorX >= game.viewportX + SIZE_X_VIEWPORT) 
-      game.viewportX = game.cursorX - (SIZE_X_VIEWPORT - 1);
-  
-  if (game.cursorY >= game.viewportY + SIZE_Y_VIEWPORT) 
-      game.viewportY = game.cursorY - (SIZE_Y_VIEWPORT - 1);
-
-  if (game.cursorX < game.viewportX) 
-      game.viewportX = game.cursorX;
-  
-  if (game.cursorY < game.viewportY) 
-      game.viewportY = game.cursorY;
-}
-
-
-
-void spawnEntity(EntityTypes type, uint16_t x, uint16_t y, uint8_t owner) {
-  
-  Entity *e = findAvailableEntity(x, y);
-  uint8_t c = findAvailableChunk_INDEX(x >> 4, y >> 4);
-
-  if (!e || e->type != ENTITY_NULL)
-    return;
-
-  if (c == 0xFF)
-    return;
-
-  memset(e, 0, sizeof (Entity));
-
-  // I have not HP array, will add later
-  e->hp = 15;
-  e->type = type;
-  e->chunkAddr = c;
-  e->x = x & 0x0F;
-  e->y = y & 0x0F;
-  e->owner = owner;
-
-  // // DEBUG
-  // e->isVeteran = 1;
-  
-  needRedraw = 1;
-
-  return;
+  game.selUnit = 0xFF;
+  game.playerTurn = pc;
+  game.player = serv.allPlayers[pc - 1];
 }
 
 
@@ -120,74 +43,131 @@ void prepareAsciiWars() {
   memset(&game, 0, sizeof (game));
   memset(&game.lazyChunks, DISABLED_CHUNK_X, sizeof (game.lazyChunks));
 
-  game.player.goldCount = 100;
+  for (uint8_t p=0; p<3; p++) {
+    Player pl;
+    pl.goldCount = 100;
+    pl.id = p + 1;
+    serv.allPlayers[p] = pl;
+  }
+
   game.selUnit = 0xFF;
+  game.playerTurn = 1;
+  game.player = serv.allPlayers[0];
 }
 
+
+void handleInput(InputEvent ev) {
+  game.needRedraw = 1;
+  switch (ev.type) {
+    case INPUT_NONE:
+      game.needRedraw = 0;
+      break;
+    
+    case INPUT_MOVE:
+      moveCursor(ev.data.moveEvent.dx, ev.data.moveEvent.dy);
+      break;
+
+    // ONLY FOR DEBUG
+    // TODO Add menu
+    case INPUT_CANCEL:
+      if (getUnitCountAt(game.cursorX, game.cursorY) >= 3) break;
+      if (!chargeResources(ENTITY_COSTS[UNIT_SOLDIER])) break;
+
+      spawnEntity(UNIT_SOLDIER, game.cursorX, game.cursorY, game.player.id);
+      break;
+
+    case INPUT_ACTION:
+      if (game.selUnit == 0xFF) selectUnit();
+      else {
+        switch (unselectUnit()) {
+          case 0:
+            break;
+
+          case 1:
+            game.allEntities[game.selUnit].isBlinking = 0;
+            game.selUnit = 0xFF;
+            // processIncome();
+            break;
+
+          case 2:
+            break;
+        }
+      }
+      break;
+
+    case INPUT_NEXT_TURN:
+      nextTurn();
+      break;
+
+    default:
+      game.needRedraw = 0;
+      break;
+  }
+}
 
 
 int main(void) {
   prepareAsciiWars();
   enableRawMode();
 
+  spawnEntity(UNIT_SOLDIER, 5, 4, ARDUINO + 2);
   spawnEntity(BLD_BASE, 5, 7, ARDUINO + 1);
   spawnEntity(BLD_BASE, 5, 6, ARDUINO + 2);
   spawnEntity(BLD_BASE, 5, 5, ARDUINO + 3);
   
   printf("\x1b[H\x1b[2J");
   drawGrid();
-
+  drawHUDGrid();
   redrawViewport(game.viewportX, game.viewportY);
 
   char c;
   int8_t x, y;
 
+  game.playerTurn = ARDUINO + 1;
+
   while (1) {
-    x = 0;
-    y = 0;
-
-    GET_INPUT(&c);
-
-    if (c == 3 || c == 4)
-      break;
-
-    if (c == '\x1b') {
-      if (read(STDIN_FILENO, &c, 1) == 0) continue;
-      if (read(STDIN_FILENO, &c, 1) == 0) continue;
-    }
-
-    // Moving
-    if (c == 'w' || c == 'k' || c == 'A')
-      y = -1;
-    else if (c == 's' || c == 'j' || c == 'B')
-      y = 1;
-    else if (c == 'a' || c == 'h' || c == 'D')
-      x = -1;
-    else if (c == 'd' || c == 'l' || c == 'C')
-      x = 1;
+    InputEvent ev = pollEvent();
+    if (ev.type == INPUT_QUIT) break;
+    handleInput(ev);
     
-    else if (c == ' ')
-     spawnEntity(UNIT_TANK, game.cursorX, game.cursorY, ARDUINO + 1);
-
-    else if (c == '\t')
-      spawnEntity(MINER_GOLD, game.cursorX, game.cursorY, ARDUINO + 1);
-
-    else if (c == 'o') {
-      if (game.selUnit == 0xFF) {
-        selectUnit();
-      } else {
-        unselectUnit();
-      }
-    }
-
-    moveCursor(x, y);
-
-    needRedraw |= (x != 0) || (y != 0);
-    
-    if (needRedraw) {
+    if (game.needRedraw) {
       redrawViewport(game.viewportX, game.viewportY);
+
+      // TODO add updateHUD();
+      Entity *e = getEntityAt(game.cursorX, game.cursorY);
+      if (e && e->type > ENTITY_NULL)
+        printf(
+          "\x1b[K TURN: %d | PTURN:\x1b[%d;%dm %d \x1b[0m || G: %d | U: %d || Unit\x1b[%d;%dm %c \x1b[0m: HP %d | AP %d ||\n\r",
+          serv.gameTurn,
+
+          BG_OWNER_COLORS[game.playerTurn],
+          FG_OWNER_COLORS[game.playerTurn],
+          game.playerTurn,
+
+          game.player.goldCount,
+          game.player.uraniumCount,
+
+          BG_OWNER_COLORS[e->owner],
+          FG_OWNER_COLORS[e->owner],
+          ENTITY_CHARS[e->type],
+          e->hp,
+          e->ap
+          );
+      else
+        printf(
+            "\x1b[K TURN: %d | PTURN:\x1b[%d;%dm %d \x1b[0m || G: %d | U: %d ||",
+            serv.gameTurn,
+
+            BG_OWNER_COLORS[game.playerTurn],
+            FG_OWNER_COLORS[game.playerTurn],
+            game.playerTurn,
+
+            game.player.goldCount,
+            game.player.uraniumCount
+            );
+
       fflush(stdout);
-      needRedraw = 0;
+      game.needRedraw = 0;
     }
   }
 

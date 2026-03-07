@@ -81,6 +81,17 @@ void updateViewPortCache() {
 }
 
 
+void drawHUDGrid() {
+  printf("\x1b[%d;%dH", 1 + 1, 1 + 1 + 1 + (SIZE_X_VIEWPORT << 2));
+  printf("| HUD START |\n\r");
+}
+
+void drawHUD() {
+  
+}
+
+
+
 void drawGrid() {
   printf("+");
   for (uint8_t i=0; i<SIZE_X_VIEWPORT; i++)

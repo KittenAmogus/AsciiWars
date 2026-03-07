@@ -20,7 +20,7 @@
 #define XY_VIEWPORT 32
 #else
 #define SIZE_X_VIEWPORT 16
-#define SIZE_Y_VIEWPORT 8
+#define SIZE_Y_VIEWPORT 16
 
 #define XY_VIEWPORT 128
 #endif
