@@ -1,0 +1,9 @@
+default_fqbn: arduino:avr:nano
+sources:
+  - .
+  - ../../core/combat
+  - ../../core/economy
+  - ../../core/engine
+  - ../../core/map
+  - ../../core/types
+  - ../../common

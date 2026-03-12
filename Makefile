@@ -3,7 +3,7 @@ BLDDIR = build
 
 # --- Setting ---
 CC = gcc
-CFLAGS = -Wall -Wextra -I./$(SRCDIR)/core -I./$(SRCDIR)/platform/pc -I./$(SRCDIR)/common
+CFLAGS = -Wall -Wextra -I./$(SRCDIR)/core -I./$(SRCDIR)/platform/pc -I./$(SRCDIR)/common -I./$(SRCDIR)
 LDFLAGS = 
 
 MAIN = AsciiWars
@@ -14,7 +14,7 @@ PORT = /dev/ttyUSB0
 SKETCH_DIR = platform/arduino
 
 # -- Sources
-CORE_SRCS = $(wildcard $(SRCDIR)/core/*.c)
+CORE_SRCS = $(wildcard $(shell find $(SRCDIR)/core -name '*.c'))
 PC_SRCS   = $(wildcard $(SRCDIR)/platform/pc/*.c)
 
 # -- Objects
@@ -47,12 +47,12 @@ $(BLDDIR)/pc/%.o: $(SRCDIR)/platform/pc/%.c
 # Arduino
 arduino:
 	@echo "--- Compiling for $(BOARD)"
-	arduino-cli compile --fqbn $(BOARD) $(SKETCH_DIR)
+	arduino-cli compile --fqbn $(BOARD) $(SRCDIR)/$(SKETCH_DIR)
 
 # Arduino flashing
 upload:
 	@echo "--- Uploading to $(PORT)"
-	arduino-cli upload -p $(PORT) --fqbn $(BOARD) $(SKETCH_DIR)
+	arduino-cli upload -p $(PORT) --fqbn $(BOARD) $(SRCDIR)/$(SKETCH_DIR)
 
 # Cleaning
 clean:
