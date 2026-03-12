@@ -3,7 +3,7 @@ BLDDIR = build
 
 # --- Setting ---
 CC = gcc
-CFLAGS = -Wall -Wextra -I./$(SRCDIR)/core -I./$(SRCDIR)/platform/pc
+CFLAGS = -Wall -Wextra -I./$(SRCDIR)/core -I./$(SRCDIR)/platform/pc -I./$(SRCDIR)/common
 LDFLAGS = 
 
 MAIN = AsciiWars
