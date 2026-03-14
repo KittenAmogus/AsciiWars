@@ -1,3 +1,5 @@
+INC_FLAGS = $(shell find $(SRCDIR)/core -type d | sed 's/^/-I/')
+
 SRCDIR = src
 BLDDIR = build
 
@@ -47,7 +49,7 @@ $(BLDDIR)/pc/%.o: $(SRCDIR)/platform/pc/%.c
 # Arduino
 arduino:
 	@echo "--- Compiling for $(BOARD)"
-	arduino-cli compile --fqbn $(BOARD) $(SRCDIR)/$(SKETCH_DIR)
+	arduino-cli compile --fqbn $(BOARD) $(SRCDIR)/$(SKETCH_DIR) --build-property "compiler.cpp.extra_flags=$(INC_FLAGS) -I$(SRCDIR)"
 
 # Arduino flashing
 upload:

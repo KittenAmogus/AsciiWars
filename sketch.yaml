@@ -1,9 +1,11 @@
 default_fqbn: arduino:avr:nano
-sources:
-  - .
-  - ../../core/combat
-  - ../../core/economy
-  - ../../core/engine
-  - ../../core/map
-  - ../../core/types
-  - ../../common
+build_profile: nano
+compiler:
+  extra_flags:
+    - "-I../../core/combat"
+    - "-I../../core/economy"
+    - "-I../../core/engine"
+    - "-I../../core/map"
+    - "-I../../core/memory"
+    - "-I../../core/types"
+    - "-I../../"

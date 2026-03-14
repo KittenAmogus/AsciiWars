@@ -1,0 +1,164 @@
+[
+  {
+    "file": "src/core/engine/engine.c",
+    "arguments": [
+      "gcc",
+      "-Wall",
+      "-Wextra",
+      "-I./src/core",
+      "-I./src/platform/pc",
+      "-I./src/common",
+      "-I./src",
+      "-c",
+      "src/core/engine/engine.c",
+      "-o",
+      "build/core/engine/engine.o"
+    ],
+    "directory": "/home/kitten/Documents/AsciiWars",
+    "output": "build/core/engine/engine.o"
+  },
+  {
+    "file": "src/core/combat/combat.c",
+    "arguments": [
+      "gcc",
+      "-Wall",
+      "-Wextra",
+      "-I./src/core",
+      "-I./src/platform/pc",
+      "-I./src/common",
+      "-I./src",
+      "-c",
+      "src/core/combat/combat.c",
+      "-o",
+      "build/core/combat/combat.o"
+    ],
+    "directory": "/home/kitten/Documents/AsciiWars",
+    "output": "build/core/combat/combat.o"
+  },
+  {
+    "file": "src/core/map/map.c",
+    "arguments": [
+      "gcc",
+      "-Wall",
+      "-Wextra",
+      "-I./src/core",
+      "-I./src/platform/pc",
+      "-I./src/common",
+      "-I./src",
+      "-c",
+      "src/core/map/map.c",
+      "-o",
+      "build/core/map/map.o"
+    ],
+    "directory": "/home/kitten/Documents/AsciiWars",
+    "output": "build/core/map/map.o"
+  },
+  {
+    "file": "src/core/types/types.c",
+    "arguments": [
+      "gcc",
+      "-Wall",
+      "-Wextra",
+      "-I./src/core",
+      "-I./src/platform/pc",
+      "-I./src/common",
+      "-I./src",
+      "-c",
+      "src/core/types/types.c",
+      "-o",
+      "build/core/types/types.o"
+    ],
+    "directory": "/home/kitten/Documents/AsciiWars",
+    "output": "build/core/types/types.o"
+  },
+  {
+    "file": "src/core/memory/memory.c",
+    "arguments": [
+      "gcc",
+      "-Wall",
+      "-Wextra",
+      "-I./src/core",
+      "-I./src/platform/pc",
+      "-I./src/common",
+      "-I./src",
+      "-c",
+      "src/core/memory/memory.c",
+      "-o",
+      "build/core/memory/memory.o"
+    ],
+    "directory": "/home/kitten/Documents/AsciiWars",
+    "output": "build/core/memory/memory.o"
+  },
+  {
+    "file": "src/core/economy/economy.c",
+    "arguments": [
+      "gcc",
+      "-Wall",
+      "-Wextra",
+      "-I./src/core",
+      "-I./src/platform/pc",
+      "-I./src/common",
+      "-I./src",
+      "-c",
+      "src/core/economy/economy.c",
+      "-o",
+      "build/core/economy/economy.o"
+    ],
+    "directory": "/home/kitten/Documents/AsciiWars",
+    "output": "build/core/economy/economy.o"
+  },
+  {
+    "file": "src/platform/pc/hal_draw.c",
+    "arguments": [
+      "gcc",
+      "-Wall",
+      "-Wextra",
+      "-I./src/core",
+      "-I./src/platform/pc",
+      "-I./src/common",
+      "-I./src",
+      "-c",
+      "src/platform/pc/hal_draw.c",
+      "-o",
+      "build/pc/hal_draw.o"
+    ],
+    "directory": "/home/kitten/Documents/AsciiWars",
+    "output": "build/pc/hal_draw.o"
+  },
+  {
+    "file": "src/platform/pc/hal_io.c",
+    "arguments": [
+      "gcc",
+      "-Wall",
+      "-Wextra",
+      "-I./src/core",
+      "-I./src/platform/pc",
+      "-I./src/common",
+      "-I./src",
+      "-c",
+      "src/platform/pc/hal_io.c",
+      "-o",
+      "build/pc/hal_io.o"
+    ],
+    "directory": "/home/kitten/Documents/AsciiWars",
+    "output": "build/pc/hal_io.o"
+  },
+  {
+    "file": "src/platform/pc/main.c",
+    "arguments": [
+      "gcc",
+      "-Wall",
+      "-Wextra",
+      "-I./src/core",
+      "-I./src/platform/pc",
+      "-I./src/common",
+      "-I./src",
+      "-c",
+      "src/platform/pc/main.c",
+      "-o",
+      "build/pc/main.o"
+    ],
+    "directory": "/home/kitten/Documents/AsciiWars",
+    "output": "build/pc/main.o"
+  }
+]
